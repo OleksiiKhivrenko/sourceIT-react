@@ -25,14 +25,6 @@ class TodoSidebar extends Component {
     this.updateCategories = this.updateCategories.bind(this);
   }
 
-  componentWillReceiveProps(nextProps) {
-    console.log(nextProps);
-  }
-
-  componentWillUpdate() {
-
-  }
-
   addNewCategory(categoryTitle) {
 
     let categories = this.state.categories;
@@ -60,12 +52,9 @@ class TodoSidebar extends Component {
   }
 
   updateCategories(updCategories) {
-    // console.log(this.state.categories);
-    // this.setState({
-    //   categories: updCategories
-    // });
-    //
-    // this.forceUpdate();
+    this.setState({
+      categories: updCategories
+    });
   }
 
   removeCategory(id) {
@@ -78,6 +67,7 @@ class TodoSidebar extends Component {
 
   render() {
     const { categories } = this.state;
+    console.log(3, this.state.categories);
 
     return(
       <div className="todo-sidebar">
@@ -139,26 +129,30 @@ class Categories extends Component {
     super(props);
 
     this.state = {
-      categories: this.props.items
+      categoriesList: this.props.items
     };
 
     this.updateCategories = this.updateCategories.bind(this);
   }
 
   updateCategories(updCategories) {
+
+    this.setState({
+      categoriesList: updCategories
+    });
+
     this.props.updateCategories(updCategories);
   }
 
   showProps() {
-    console.log(this.state.categories);
+    console.log(this.state.categoriesList);
   }
 
   render() {
-    const { categories } = this.state;
 
     return(
       <div>
-        <CategoriesList categoriesList = { categories } updateCategories = { this.updateCategories } />
+        <CategoriesList categoriesList = { this.state.categoriesList } updateCategories = { this.updateCategories } />
 
         <button onClick={ this.showProps.bind(this) }>show</button>
       </div>
@@ -172,26 +166,35 @@ class CategoriesList extends Component {
     super(props);
 
     this.state = {
-      categoriesList: this.props.categoriesList
+      categoriesList: this.props.categoriesList,
+      categoriesListTemp: this.props.categoriesList
     };
 
-    this.categoriesListObj = this.props.categoriesList;
-
     this.toggleTitleState = this.toggleTitleState.bind(this);
-    this.removeCategory = this.removeCategory.bind(this);
+    this.removeCategoryItem = this.removeCategoryItem.bind(this);
     this.addSubCategory = this.addSubCategory.bind(this);
     this.changeCategoryTitle = this.changeCategoryTitle.bind(this);
   }
 
-  componentWillReceiveProps() {
-
-  }
-
   toggleTitleState(item) {
 
-    let editedCategoriesList = this.categoriesListObj.map(function(obj) {
+    let categoriesListTemp = this.state.categoriesListTemp;
+    let objTitle;
+
+    for (let obj of categoriesListTemp) {
+      if (obj.id === item.id) {
+        objTitle = obj.title;
+      }
+    }
+
+    console.log(objTitle);
+    console.log(categoriesListTemp);
+
+
+    let editedCategoriesList = this.state.categoriesList.map(function(obj) {
       if (obj.id === item.id) {
         obj.editable = item.editable;
+        obj.title = obj.title || objTitle;
       }
 
       return obj;
@@ -205,7 +208,24 @@ class CategoriesList extends Component {
 
   }
 
-  removeCategory() {
+  removeCategoryItem(item) {
+    let editedCategoriesList = this.state.categoriesList;
+    let editedCategoriesListTemp = this.state.categoriesListTemp;
+
+    editedCategoriesList = editedCategoriesList.filter(function(obj) {
+      return obj.id !== item.id
+    });
+
+    editedCategoriesListTemp = editedCategoriesListTemp.filter(function(obj) {
+      return obj.id !== item.id
+    });
+
+    this.setState({
+      categoriesList: editedCategoriesList,
+      categoriesListTemp: editedCategoriesList
+    });
+
+    this.props.updateCategories(editedCategoriesList);
 
   }
 
@@ -213,51 +233,34 @@ class CategoriesList extends Component {
 
   }
 
-  changeCategoryTitle(item, title) {
+  changeCategoryTitle(item) {
 
     let editedCategoriesList = this.props.categoriesList.map(function(obj) {
 
       if (obj.id === item.id) {
         if (item.editable) {
-          obj.title = title;
+          obj.title = item.title;
         }
       }
 
       return obj;
     });
 
-    this.categoriesListObj = editedCategoriesList;
-
     this.setState({
-      categoriesList: editedCategoriesList
+      categoriesListTemp: editedCategoriesList
     });
-
-  }
-
-  changingTitlesBeforeFullUpd(title) {
-
-    let titleLists = this.titleLists;
 
   }
 
   render() {
-    const { categoriesList } = this.props;
-
     const categoryMethods = {
       toggleTitleState: this.toggleTitleState,
-      removeCategory: this.removeCategory,
+      removeCategoryItem: this.removeCategoryItem,
       addSubCategory: this.addSubCategory,
       changeCategoryTitle: this.changeCategoryTitle
     };
 
-    this.titleLists = this.props.categoriesList.map(function(obj) {
-      return {
-        id: obj.id,
-        title: obj.title
-      }
-    });
-
-    console.log(this.titleLists);
+    let categoriesList = this.state.categoriesList;
 
     return (
       <ol>
@@ -286,7 +289,6 @@ class CategoryTitle extends Component {
     };
 
     this.titleChange = this.titleChange.bind(this);
-    this.inputKeyPress = this.inputKeyPress.bind(this);
   }
 
   titleChange(ev) {
@@ -297,32 +299,16 @@ class CategoryTitle extends Component {
       title: title
     });
 
-  }
+    const item = this.props.item;
+    item.title = title;
 
-  inputKeyPress(ev) {
-
-    let { defaultTitle, title } = this.state;
-    let { item } = this.props;
-
-    if (ev.keyCode === 13) {
-
-      this.props.changeCategoryTitle(item, title);
-      item.editable = !item.editable;
-      this.props.toggleTitleState(item);
-
-    } else if (ev.keyCode === 27) {
-
-      this.props.changeCategoryTitle(item, defaultTitle);
-      item.editable = !item.editable;
-      this.props.toggleTitleState(item);
-
-    }
+    this.props.changeCategoryTitle(item);
 
   }
 
   render() {
     const { item } = this.props;
-    const { title } = this.state;
+    let { title } = this.state;
 
     let categoryTitle;
 
@@ -332,7 +318,7 @@ class CategoryTitle extends Component {
       )
     } else {
       categoryTitle = (
-        <input type="text" value={ title } onChange={ this.titleChange } onKeyDown={ this.inputKeyPress }/>
+        <input type="text" value={ title } onChange={ this.titleChange }/>
       )
     }
 
@@ -351,23 +337,20 @@ class CategoryBtns extends Component {
     super(props);
 
     this.edit = this.edit.bind(this);
-    this.remove = this.remove.bind(this);
     this.add = this.add.bind(this);
+    this.remove = this.remove.bind(this);
   }
 
   edit() {
     let item = this.props.item;
-
-    if (item.editable) {
-      this.props.categoryMethods.changeCategoryTitle(item);
-    }
-
     item.editable = !item.editable;
     this.props.categoryMethods.toggleTitleState(item);
   }
 
   remove() {
+    const item = this.props.item;
 
+    this.props.categoryMethods.removeCategoryItem(item);
   }
 
   add() {
@@ -375,17 +358,16 @@ class CategoryBtns extends Component {
   }
 
   render() {
+    const item = this.props.item;
 
     return(
       <div>
         <button onClick = { this.edit }>edit</button>
-        <button onClick = { this.remove }>remove</button>
+        <button onClick = { this.remove } >remove</button>
         <button onClick = { this.add }>add</button>
       </div>
     )
   }
 }
-
-
 
 export default App;
