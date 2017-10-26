@@ -25,9 +25,9 @@ class TodoSidebar extends Component {
     this.updateCategories = this.updateCategories.bind(this);
   }
 
-  addNewCategory(categoryTitle) {
+  addNewCategory(categoryTitle, parentId) {
 
-    let categories = this.state.categories;
+    let categories = this.state.categories.slice();
     let counter = this.state.counter;
 
     let newCategory = {
@@ -40,6 +40,19 @@ class TodoSidebar extends Component {
       tasks: [],
       editable: false
     };
+
+    if (parentId !== undefined) {
+
+      newCategory.parentId = parentId;
+      categories = categories.map(function(obj) {
+        if (obj.id === parentId) {
+          obj.childrenId.push(newCategory.id);
+        }
+
+        return obj;
+      });
+
+    }
 
     categories.push(newCategory);
     counter++;
@@ -57,25 +70,15 @@ class TodoSidebar extends Component {
     });
   }
 
-  removeCategory(id) {
-
-  }
-
-  addSubCategory(id) {
-
-  }
-
   render() {
-    const { categories } = this.state;
-    console.log(3, this.state.categories);
-
     return(
       <div className="todo-sidebar">
         <Category
           updateItems = { this.addNewCategory }/>
         <Categories
-          items = { categories }
+          items = { this.state.categories }
           updateCategories = { this.updateCategories }
+          addNewCategory = { this.addNewCategory }
           />
       </div>
     );
@@ -98,7 +101,13 @@ class Category extends Component {
   addItem(e) {
     e.preventDefault();
 
-    this.props.updateItems(this.state.inputValue);
+    let value = this.state.inputValue;
+
+    if (value === "") {
+      value = "New Task";
+    }
+
+    this.props.updateItems(value);
 
     this.setState({
       inputValue: ''
@@ -133,6 +142,7 @@ class Categories extends Component {
     };
 
     this.updateCategories = this.updateCategories.bind(this);
+    this.addSubCategory = this.addSubCategory.bind(this);
   }
 
   updateCategories(updCategories) {
@@ -144,15 +154,19 @@ class Categories extends Component {
     this.props.updateCategories(updCategories);
   }
 
+  addSubCategory(parentId) {
+    this.props.addNewCategory('SubTask', parentId);
+  }
+
   showProps() {
-    console.log(this.state.categoriesList);
+    console.log(this.props.items);
   }
 
   render() {
 
     return(
       <div>
-        <CategoriesList categoriesList = { this.state.categoriesList } updateCategories = { this.updateCategories } />
+        <CategoriesList categoriesList = { this.props.items } updateCategories = { this.updateCategories } addSubCategory = { this.addSubCategory } />
 
         <button onClick={ this.showProps.bind(this) }>show</button>
       </div>
@@ -166,14 +180,19 @@ class CategoriesList extends Component {
     super(props);
 
     this.state = {
-      categoriesList: this.props.categoriesList,
-      categoriesListTemp: this.props.categoriesList
+      categoriesListTemp: []
     };
 
     this.toggleTitleState = this.toggleTitleState.bind(this);
     this.removeCategoryItem = this.removeCategoryItem.bind(this);
     this.addSubCategory = this.addSubCategory.bind(this);
     this.changeCategoryTitle = this.changeCategoryTitle.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      categoriesListTemp: nextProps.categoriesList
+    });
   }
 
   toggleTitleState(item) {
@@ -183,18 +202,18 @@ class CategoriesList extends Component {
 
     for (let obj of categoriesListTemp) {
       if (obj.id === item.id) {
-        objTitle = obj.title;
+        if (item.title !== "") {
+          objTitle = obj.title;
+        } else {
+          objTitle = "Task #" + item.id;
+        }
       }
     }
 
-    console.log(objTitle);
-    console.log(categoriesListTemp);
-
-
-    let editedCategoriesList = this.state.categoriesList.map(function(obj) {
+    let editedCategoriesList = this.props.categoriesList.map(function(obj) {
       if (obj.id === item.id) {
         obj.editable = item.editable;
-        obj.title = obj.title || objTitle;
+        obj.title = objTitle;
       }
 
       return obj;
@@ -210,13 +229,8 @@ class CategoriesList extends Component {
 
   removeCategoryItem(item) {
     let editedCategoriesList = this.state.categoriesList;
-    let editedCategoriesListTemp = this.state.categoriesListTemp;
 
     editedCategoriesList = editedCategoriesList.filter(function(obj) {
-      return obj.id !== item.id
-    });
-
-    editedCategoriesListTemp = editedCategoriesListTemp.filter(function(obj) {
       return obj.id !== item.id
     });
 
@@ -229,18 +243,16 @@ class CategoriesList extends Component {
 
   }
 
-  addSubCategory() {
-
+  addSubCategory(parentId) {
+    this.props.addSubCategory(parentId);
   }
 
   changeCategoryTitle(item) {
 
     let editedCategoriesList = this.props.categoriesList.map(function(obj) {
 
-      if (obj.id === item.id) {
-        if (item.editable) {
-          obj.title = item.title;
-        }
+      if (obj.id === item.id && item.editable) {
+        obj.title = item.title;
       }
 
       return obj;
@@ -253,6 +265,7 @@ class CategoriesList extends Component {
   }
 
   render() {
+    console.log(this.state.categoriesListTemp);
     const categoryMethods = {
       toggleTitleState: this.toggleTitleState,
       removeCategoryItem: this.removeCategoryItem,
@@ -260,19 +273,74 @@ class CategoriesList extends Component {
       changeCategoryTitle: this.changeCategoryTitle
     };
 
-    let categoriesList = this.state.categoriesList;
+    let categoriesList = this.props.categoriesList;
+
+    let abc = (item, key) => {
+      let childrenId = item.childrenId;
+      let childrenIdLength = item.childrenId.length;
+
+
+      if (item.parentId === null) {
+        categoriesList.map((item, key) => {
+          return (
+            <li key={ key }>
+              <div>
+                <CategoryTitle item={ item } changeCategoryTitle={ this.changeCategoryTitle }
+                               toggleTitleState={ this.toggleTitleState }/>
+                <CategoryBtns categoryMethods={ categoryMethods } item={ item }/>
+                {
+                  { childrenIdLength } ? (
+                    <ol>
+                      {
+                        categoriesList.map(function (item, key) {
+                          if ((item.id)) {
+                            console.log(item.id);
+                            return (
+                              <li key={ key }>
+                                <div>
+                                  <CategoryTitle item={ item } changeCategoryTitle={ this.changeCategoryTitle }
+                                                 toggleTitleState={ this.toggleTitleState }/>
+                                  <CategoryBtns categoryMethods={ categoryMethods } item={ item }/>
+                                  <ol>
+                                    { abc(item, key) }
+                                  </ol>
+                                </div>
+                              </li>
+                            )
+                          }
+                        })
+                      }
+                    </ol>
+                  ) : (
+                    ''
+                  )
+                }
+              </div>
+            </li>
+          )
+        })
+      } else {
+        return (
+          <li key={ key }>
+            <div>
+              <CategoryTitle item={ item } changeCategoryTitle={ this.changeCategoryTitle }
+                             toggleTitleState={ this.toggleTitleState }/>
+              <CategoryBtns categoryMethods={ categoryMethods } item={ item }/>
+              <ol>
+                {abc(item, key)}
+              </ol>
+            </div>
+          </li>
+        )
+      }
+    };
 
     return (
       <ol>
         {
-          categoriesList.map((item, key) => (
-            <li key={ key }>
-              <div>
-                <CategoryTitle item = { item } changeCategoryTitle = { this.changeCategoryTitle } toggleTitleState = { this.toggleTitleState } />
-                <CategoryBtns categoryMethods = { categoryMethods } item = { item } />
-              </div>
-            </li>
-          ))
+          categoriesList.map((item, key) => {
+            abc(item, key);
+          })
         }
       </ol>
     );
@@ -282,11 +350,6 @@ class CategoriesList extends Component {
 class CategoryTitle extends Component {
   constructor(props) {
     super(props);
-
-    this.state = {
-      defaultTitle: this.props.item.title,
-      title: this.props.item.title
-    };
 
     this.titleChange = this.titleChange.bind(this);
   }
@@ -307,8 +370,7 @@ class CategoryTitle extends Component {
   }
 
   render() {
-    const { item } = this.props;
-    let { title } = this.state;
+    let { item } = this.props;
 
     let categoryTitle;
 
@@ -318,7 +380,7 @@ class CategoryTitle extends Component {
       )
     } else {
       categoryTitle = (
-        <input type="text" value={ title } onChange={ this.titleChange }/>
+        <input type="text" value={ this.props.item.title } onChange={ this.titleChange }/>
       )
     }
 
@@ -358,13 +420,13 @@ class CategoryBtns extends Component {
   }
 
   render() {
-    const item = this.props.item;
-
+    const { item } = this.props;
+    const { addSubCategory } = this.props.categoryMethods;
     return(
       <div>
         <button onClick = { this.edit }>edit</button>
         <button onClick = { this.remove } >remove</button>
-        <button onClick = { this.add }>add</button>
+        <button onClick = { () => addSubCategory(item.id) }>add</button>
       </div>
     )
   }
