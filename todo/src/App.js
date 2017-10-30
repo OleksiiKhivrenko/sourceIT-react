@@ -228,10 +228,36 @@ class CategoriesList extends Component {
   }
 
   removeCategoryItem(item) {
-    let editedCategoriesList = this.state.categoriesList;
+    let editedCategoriesList = this.props.categoriesList.slice();
 
-    editedCategoriesList = editedCategoriesList.filter(function(obj) {
-      return obj.id !== item.id
+    let removedItemsInDepth = [];
+    removedItemsInDepth.push(item.id);
+
+    let search = (arr) => {
+      let arrForSearch = arr;
+      let founded = [];
+
+      editedCategoriesList.filter(function(item) {
+        if (arrForSearch.includes(item.id)) {
+          if (item.childrenId.length) {
+            founded = founded.concat(item.childrenId).filter((v, i, a) => a.indexOf(v) === i);
+            founded = founded.concat(search(item.childrenId));
+          }
+        }
+      });
+
+      arrForSearch = arrForSearch.concat(founded);
+      arrForSearch = arrForSearch.filter((v, i, a) => a.indexOf(v) === i);
+
+      return arrForSearch;
+    };
+
+    removedItemsInDepth = search(removedItemsInDepth);
+
+
+
+    editedCategoriesList = editedCategoriesList.filter((obj) => {
+      return !removedItemsInDepth.includes(obj.id)
     });
 
     this.setState({
@@ -249,7 +275,7 @@ class CategoriesList extends Component {
 
   changeCategoryTitle(item) {
 
-    let editedCategoriesList = this.props.categoriesList.map(function(obj) {
+    let editedCategoriesList = this.props.categoriesList.map((obj) => {
 
       if (obj.id === item.id && item.editable) {
         obj.title = item.title;
@@ -266,6 +292,7 @@ class CategoriesList extends Component {
 
   render() {
     console.log(this.state.categoriesListTemp);
+
     const categoryMethods = {
       toggleTitleState: this.toggleTitleState,
       removeCategoryItem: this.removeCategoryItem,
@@ -275,77 +302,65 @@ class CategoriesList extends Component {
 
     let categoriesList = this.props.categoriesList;
 
-    let abc = (item, key) => {
-      let childrenId = item.childrenId;
-      let childrenIdLength = item.childrenId.length;
-
-
-      if (item.parentId === null) {
-        categoriesList.map((item, key) => {
-          return (
-            <li key={ key }>
-              <div>
-                <CategoryTitle item={ item } changeCategoryTitle={ this.changeCategoryTitle }
-                               toggleTitleState={ this.toggleTitleState }/>
-                <CategoryBtns categoryMethods={ categoryMethods } item={ item }/>
-                {
-                  { childrenIdLength } ? (
-                    <ol>
-                      {
-                        categoriesList.map(function (item, key) {
-                          if ((item.id)) {
-                            console.log(item.id);
-                            return (
-                              <li key={ key }>
-                                <div>
-                                  <CategoryTitle item={ item } changeCategoryTitle={ this.changeCategoryTitle }
-                                                 toggleTitleState={ this.toggleTitleState }/>
-                                  <CategoryBtns categoryMethods={ categoryMethods } item={ item }/>
-                                  <ol>
-                                    { abc(item, key) }
-                                  </ol>
-                                </div>
-                              </li>
-                            )
-                          }
-                        })
-                      }
-                    </ol>
-                  ) : (
-                    ''
-                  )
-                }
-              </div>
-            </li>
-          )
-        })
-      } else {
-        return (
-          <li key={ key }>
-            <div>
-              <CategoryTitle item={ item } changeCategoryTitle={ this.changeCategoryTitle }
-                             toggleTitleState={ this.toggleTitleState }/>
-              <CategoryBtns categoryMethods={ categoryMethods } item={ item }/>
-              <ol>
-                {abc(item, key)}
-              </ol>
-            </div>
-          </li>
-        )
-      }
-    };
-
     return (
       <ol>
         {
-          categoriesList.map((item, key) => {
-            abc(item, key);
+          categoriesList.map((item) => {
+            if (item.parentId === null) {
+              return (
+                <li key={ item.id }>
+                  <CategoryHelpers item={ item } categoryMethods={ categoryMethods }/>
+
+                  {item.childrenId.length ? (
+                    <SubCategoryItem item={ item } categoriesList={ categoriesList }
+                                     categoryMethods={ categoryMethods }/>
+                  ) : (
+                    ''
+                  )}
+                </li>
+              )
+            }
           })
         }
       </ol>
-    );
+    )
   }
 }
+
+let SubCategoryItem = ({item, categoriesList, categoryMethods}) => {
+
+  let childrenArr = item.childrenId;
+  let collectionOfItems = categoriesList.filter(function(obj) {
+    return childrenArr.includes(obj.id)
+  });
+
+  return (
+    <ol>
+      {
+        collectionOfItems.map((item) => (
+          <li key={ item.id }>
+            <CategoryHelpers item = { item } categoryMethods = { categoryMethods } />
+
+            {item.childrenId.length ? (
+              <SubCategoryItem item = { item } categoriesList = { categoriesList } categoryMethods = { categoryMethods } />
+            ) : (
+              ''
+            )}
+          </li>
+        ))
+      }
+    </ol>
+  )
+};
+
+let CategoryHelpers = ({item, categoryMethods}) => {
+  return (
+    <div>
+      <CategoryTitle item = { item } categoryMethods = { categoryMethods }/>
+      <CategoryBtns item = { item } categoryMethods = { categoryMethods } />
+    </div>
+  )
+};
 
 class CategoryTitle extends Component {
   constructor(props) {
@@ -365,7 +380,7 @@ class CategoryTitle extends Component {
     const item = this.props.item;
     item.title = title;
 
-    this.props.changeCategoryTitle(item);
+    this.props.categoryMethods.changeCategoryTitle(item);
 
   }
 
