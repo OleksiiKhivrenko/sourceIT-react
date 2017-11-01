@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
+import { BrowserRouter, Route, Link } from 'react-router-dom';
 
 class App extends Component {
   render() {
     return (
-      <div>
+      <div className="todo">
         <TodoSidebar />
+        <TodoTasks />
       </div>
     );
   }
@@ -122,12 +123,12 @@ class Category extends Component {
 
   render() {
     return (
-      <form type="submit" onSubmit={ this.addItem }>
+      <form type="submit" className="todo-form" onSubmit={ this.addItem }>
         <input type="text"
                placeholder={ this.state.placeholder }
                onChange={ this.inputChange }
                value={ this.state.inputValue } />
-        <button>+</button>
+        <button></button>
       </form>
     )
   }
@@ -303,12 +304,12 @@ class CategoriesList extends Component {
     let categoriesList = this.props.categoriesList;
 
     return (
-      <ol>
+      <ol className="todo-category">
         {
           categoriesList.map((item) => {
             if (item.parentId === null) {
               return (
-                <li key={ item.id }>
+                <li key={ item.id } className="todo-categoryItem">
                   <CategoryHelpers item={ item } categoryMethods={ categoryMethods }/>
 
                   {item.childrenId.length ? (
@@ -335,10 +336,10 @@ let SubCategoryItem = ({item, categoriesList, categoryMethods}) => {
   });
 
   return (
-    <ol>
+    <ol className="todo-category">
       {
         collectionOfItems.map((item) => (
-          <li key={ item.id }>
+          <li key={ item.id } className="todo-categoryItem">
             <CategoryHelpers item = { item } categoryMethods = { categoryMethods } />
 
             {item.childrenId.length ? (
@@ -355,7 +356,7 @@ let SubCategoryItem = ({item, categoriesList, categoryMethods}) => {
 
 let CategoryHelpers = ({item, categoryMethods}) => {
   return (
-    <div>
+    <div className="todo-taskWrap">
       <CategoryTitle item = { item } categoryMethods = { categoryMethods }/>
       <CategoryBtns item = { item } categoryMethods = { categoryMethods } />
     </div>
@@ -400,7 +401,7 @@ class CategoryTitle extends Component {
     }
 
     return(
-      <div>
+      <div className="todo-taskText">
         { categoryTitle }
       </div>
     )
@@ -438,13 +439,21 @@ class CategoryBtns extends Component {
     const { item } = this.props;
     const { addSubCategory } = this.props.categoryMethods;
     return(
-      <div>
-        <button onClick = { this.edit }>edit</button>
-        <button onClick = { this.remove } >remove</button>
-        <button onClick = { () => addSubCategory(item.id) }>add</button>
+      <div className="todo-taskBtns">
+        <button className="todo-taskBtn -edit" onClick = { this.edit }></button>
+        <button className="todo-taskBtn -remove" onClick = { this.remove } ></button>
+        <button className="todo-taskBtn -add" onClick = { () => addSubCategory(item.id) }></button>
       </div>
     )
   }
+}
+
+let TodoTasks = () => {
+  return (
+    <div className="todo-tasks">
+      <Category />
+    </div>
+  )
 }
 
 export default App;

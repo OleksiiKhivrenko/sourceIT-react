@@ -1,3 +1,167 @@
+body {
+
+}
+
+.todo {
+  display: flex;
+}
+
+.todo-category {
+  font-weight: 800;
+}
+
+.todo-sidebar {
+  position: relative;
+  flex-basis: auto;
+  flex-grow: 1;
+  max-width: 300px;
+  min-height: 100vh;
+  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#359e9c+0,277275+100 */
+  background: rgb(53,158,156); /* Old browsers */
+  background: -moz-linear-gradient(top,  rgba(53,158,156,1) 0%, rgba(39,114,117,1) 100%); /* FF3.6-15 */
+  background: -webkit-linear-gradient(top,  rgba(53,158,156,1) 0%,rgba(39,114,117,1) 100%); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to bottom,  rgba(53,158,156,1) 0%,rgba(39,114,117,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#359e9c', endColorstr='#277275',GradientType=0 ); /* IE6-9 */
+}
+
+.todo-taskWrap {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap-reverse;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+.todo-taskWrap:first-child {
+  border-bottom: 1px solid #6cb9b2;
+}
+
+.todo-taskWrap:hover {
+  background-color: #36A08D;
+}
+
+.todo-sidebar .todo-category {
+  margin: 0;
+}
+
+.todo-form {
+  text-align: center;
+  padding: 20px 10px;
+  position: relative;
+}
+
+input {
+	color: #bebd9d;
+  background-color: #363842;
+  border: none;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+	-webkit-transition: all .1s linear;
+	-moz-transition: all .1s linear;
+  transition: all .1s linear;
+  outline: none;
+  text-align: left;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.todo-form input {
+  width: 100%;
+	display: inline-block;
+	padding: .9em 1.8em;
+}
+
+.todo-taskText input {
+  padding: 5px;
+}
+
+::-webkit-input-placeholder {
+  color: #bebd9d;
+  opacity: .8;
+}
+
+input:hover {
+	background-color: #2c2d31;
+}
+
+.todo-form button, .todo-taskBtn {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.todo-taskBtns {
+  width: 90px;
+}
+
+.todo-taskBtn {
+  width: 20px;
+  height: 100%;
+  margin: 0 2px;
+  position: relative;
+}
+
+.todo-taskBtn:after {
+  position: absolute;
+  content: '';
+  display: block;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  left: 0;
+
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.todo-taskBtn.-add:after {
+  background: url('https://image.flaticon.com/icons/svg/148/148764.svg') no-repeat;
+}
+
+.todo-taskBtn.-edit:after {
+  background: url('https://image.flaticon.com/icons/svg/181/181540.svg') no-repeat;
+}
+
+.todo-taskBtn.-remove:after {
+  background: url('https://image.flaticon.com/icons/svg/395/395848.svg') no-repeat;
+  
+}
+
+.todo-form button:after {
+  position: absolute;
+  right: 20px;
+  transform: translateY(-50%);
+  top: 50%;
+  display: block;
+  content: '';
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  background: url('https://image.flaticon.com/icons/svg/148/148764.svg');
+  z-index: 1;
+}
+
+.todo-taskText {
+  font-size: 14px;
+  word-break: break-all;
+  flex: 1;
+}
+
+.todo-taskBtns {
+  margin-left: auto;
+  position: relative;
+}
+
+.todo-categoryItem {
+  position: relative;
+}
+ol {
+  padding-left: 5px;
+  flex-direction: column;
+}
+
 .App {
   text-align: center;
 }
@@ -29,4 +193,19 @@
 
 ol { counter-reset: item }
 li { display: block }
-li:before { content: counters(item, ".") " "; counter-increment: item }
+
+.todo-categoryItem > .todo-taskWrap:before {
+  content: counters(item, ".") " ";
+  counter-increment: item;
+  font-size: 14px;
+  display: inline-block;
+  vertical-align: middle;
+  flex: 1 100%;
+  word-break: break-all;
+}
+
+.todo-tasks {
+  background: #3a3f56;
+  position: relative;
+  flex: 1;
+}
