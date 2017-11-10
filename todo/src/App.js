@@ -7,7 +7,7 @@ class App extends Component {
     return (
       <div className="todo">
         <TodoSidebar />
-        <TodoTasks />
+        <TodoTasksContainer />
       </div>
     );
   }
@@ -92,6 +92,30 @@ class Category extends Component {
 
     this.state = {
       placeholder: 'Enter category title',
+      defaultName: "New Category",
+      inputValue: ''
+    };
+
+    this.updateItems = this.updateItems.bind(this);
+  }
+
+  updateItems(value) {
+    this.props.updateItems(value)
+  }
+
+
+  render() {
+    return (
+      <TodoForm placeholder={ this.state.placeholder } name={ this.state.defaultName } updateItems = { this.props.updateItems }/>
+    )
+  }
+}
+
+class TodoForm extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
       inputValue: ''
     };
 
@@ -105,8 +129,10 @@ class Category extends Component {
     let value = this.state.inputValue;
 
     if (value === "") {
-      value = "New Task";
+      value = this.props.name;
     }
+
+    console.log(this.props);
 
     this.props.updateItems(value);
 
@@ -122,17 +148,18 @@ class Category extends Component {
   }
 
   render() {
-    return (
+    return(
       <form type="submit" className="todo-form" onSubmit={ this.addItem }>
         <input type="text"
-               placeholder={ this.state.placeholder }
+               placeholder={ this.props.placeholder }
                onChange={ this.inputChange }
                value={ this.state.inputValue } />
-        <button></button>
+        <button>Button</button>
       </form>
-    )
+    );
   }
-}
+
+};
 
 class Categories extends Component {
   constructor(props) {
@@ -156,7 +183,7 @@ class Categories extends Component {
   }
 
   addSubCategory(parentId) {
-    this.props.addNewCategory('SubTask', parentId);
+    this.props.addNewCategory('SubCategory', parentId);
   }
 
   showProps() {
@@ -410,6 +437,8 @@ class CategoryTitle extends Component {
 
 }
 
+
+
 class CategoryBtns extends Component {
   constructor(props) {
     super(props);
@@ -440,19 +469,75 @@ class CategoryBtns extends Component {
     const { addSubCategory } = this.props.categoryMethods;
     return(
       <div className="todo-taskBtns">
-        <button className="todo-taskBtn -edit" onClick = { this.edit }></button>
-        <button className="todo-taskBtn -remove" onClick = { this.remove } ></button>
-        <button className="todo-taskBtn -add" onClick = { () => addSubCategory(item.id) }></button>
+        <button className="todo-taskBtn -edit" onClick = { this.edit }>Button</button>
+        <button className="todo-taskBtn -remove" onClick = { this.remove } >Button</button>
+        <button className="todo-taskBtn -add" onClick = { () => addSubCategory(item.id) }>Button</button>
       </div>
     )
   }
 }
 
-let TodoTasks = () => {
+class TodoTasksContainer extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      placeholder: 'Enter item title',
+      defaultName: "New task",
+      inputValue: '',
+      tasks: []
+    };
+
+    this.updateItems = this.updateItems.bind(this);
+  }
+
+  updateItems(value) {
+    this.setState({
+      tasks: [...this.state.tasks, value]
+    });
+  }
+
+  render() {
+    console.log(this.state.tasks);
+    return (
+      <div className="todoTasksContainer" >
+        <TodoForm placeholder={ this.state.placeholder } name={ this.state.defaultName } updateItems = { this.updateItems } />
+        <TodoTaskContainer tasks = { this.state.tasks }/>
+      </div>
+    )
+  }
+};
+
+const TodoTaskContainer = ({ tasks }) => {
   return (
-    <div className="todo-tasks">
-      <Category />
+    <div className="todoTasks__table-wrap">
+      <table className="todoTasks__table">
+        <thead>
+          <tr>
+            <th>Is done</th>
+            <th>Task Name</th>
+            <th>Edit</th>
+          </tr>
+        </thead>
+        <tbody>
+        {
+          tasks.map((item, index) => (
+            <TodoTask task = { item } key = { index } />
+          ))
+        }
+        </tbody>
+      </table>
     </div>
+  );
+};
+
+const TodoTask = ({ task }) => {
+  return (
+    <tr>
+      <td><input type="checkbox"/></td>
+      <td>{ task }</td>
+      <td><button className="todo-taskBtn -edit" onClick = { this.edit }>Button</button></td>
+    </tr>
   )
 }
 

@@ -14,6 +14,7 @@ body {
   position: relative;
   flex-basis: auto;
   flex-grow: 1;
+  min-width: 300px;
   max-width: 300px;
   min-height: 100vh;
   /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#359e9c+0,277275+100 */
@@ -49,6 +50,11 @@ body {
   text-align: center;
   padding: 20px 10px;
   position: relative;
+}
+
+.todo-form.-center {
+  margin: 0 auto;
+  max-width: 900px;
 }
 
 input {
@@ -90,6 +96,7 @@ input:hover {
   padding: 0;
   border: 0;
   background: transparent;
+  text-indent: -9999px;
 }
 
 .todo-taskBtns {
@@ -204,8 +211,43 @@ li { display: block }
   word-break: break-all;
 }
 
-.todo-tasks {
+.todoTasksContainer {
   background: #3a3f56;
-  position: relative;
-  flex: 1;
+  width: 100%;
+}
+
+.todoTasks__table-wrap {
+  max-width: 900px;
+  padding: 40px 0;
+  margin: 0 auto;
+  background-color: #fff;
+  border-radius: 3px;
+}
+
+.todoTasks__table {
+  width: 100%;
+  border-top: 2px solid #000;
+  border-collapse: collapse;
+}
+
+.todoTasks__table tr {
+  border-bottom: 1px solid #000;
+}
+
+.todoTasks__table tr td{
+  text-align: center;
+}
+
+.todoTasks__table tr:last-child {
+  border-bottom: 2px solid #000;
+}
+
+.todoTasks__table tbody tr:nth-child(odd) {
+  background-color: rgb(53,158,156);
+  color: #fff;
+}
+
+
+.todoTasks__table tr th:first-child, .todoTasks__table tr th:last-child, .todoTasks__table tr td:first-child, .todoTasks__table tr th:last-child {
+  width: 80px;
 }
